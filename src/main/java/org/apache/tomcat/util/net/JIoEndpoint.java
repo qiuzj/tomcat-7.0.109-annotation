@@ -184,6 +184,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
 
     // --------------------------------------------------- Acceptor Inner Class
     /**
+     * 后台线程监听传入的TCP/IP连接并将其传递给适当的处理器。<br>
      * The background thread that listens for incoming TCP/IP connections and
      * hands them off to an appropriate processor.
      */
@@ -197,6 +198,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
             // Loop until we receive a shutdown command
             while (running) {
 
+                // 如果已暂停，则轮询等待
                 // Loop if endpoint is paused
                 while (paused && running) {
                     state = AcceptorState.PAUSED;
@@ -256,9 +258,9 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                     ExceptionUtils.handleThrowable(t);
                     log.error(sm.getString("endpoint.accept.fail"), t);
                 }
-            }
+            } // End of while (running)
             state = AcceptorState.ENDED;
-        }
+        } // End of run()
     }
 
 
@@ -275,6 +277,8 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
 
 
     /**
+     * 任务定义器.
+     * <p></p>
      * This class is the equivalent of the Worker, but will simply use in an
      * external Executor thread pool.
      */
@@ -301,7 +305,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                     SocketState state = SocketState.OPEN;
 
                     try {
-                        // SSL handshake
+                        // SSL handshake. SSL握手
                         serverSocketFactory.handshake(socket.getSocket());
                     } catch (Throwable t) {
                         ExceptionUtils.handleThrowable(t);
@@ -311,7 +315,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                         // Tell to close the socket
                         state = SocketState.CLOSED;
                     }
-
+                    // 处理套接字
                     if ((state != SocketState.CLOSED)) {
                         if (status == null) {
                             state = handler.process(socket, SocketStatus.OPEN_READ);
@@ -324,6 +328,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                         if (log.isTraceEnabled()) {
                             log.trace("Closing socket:"+socket);
                         }
+                        // 连接计数器减1
                         countDownConnection();
                         try {
                             socket.getSocket().close();

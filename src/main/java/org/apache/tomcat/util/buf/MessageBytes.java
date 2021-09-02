@@ -118,6 +118,8 @@ public final class MessageBytes implements Cloneable, Serializable {
 
 
     /**
+     * 将内容设置为指定的字节子数组。
+     * <p></p>
      * Sets the content to the specified subarray of bytes.
      *
      * @param b the bytes

@@ -81,12 +81,16 @@ public final class Request {
     private int localPort;
 
     private MessageBytes schemeMB = MessageBytes.newInstance();
-
+    /** 请求行的方法名 */
     private MessageBytes methodMB = MessageBytes.newInstance();
-    private MessageBytes unparsedURIMB = MessageBytes.newInstance();
+    /** 请求行的请求URI. 包含?及之后的查询参数 */
     private MessageBytes uriMB = MessageBytes.newInstance();
+    /** 请求行的请求URI. 不包含?及之后的查询参数 */
+    private MessageBytes unparsedURIMB = MessageBytes.newInstance();
     private MessageBytes decodedUriMB = MessageBytes.newInstance();
+    /** 请求行的请求URI的查询参数 */
     private MessageBytes queryMB = MessageBytes.newInstance();
+    /** 请求行的协议信息 */
     private MessageBytes protoMB = MessageBytes.newInstance();
 
     // remote address/host

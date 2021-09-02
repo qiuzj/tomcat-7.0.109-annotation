@@ -85,6 +85,9 @@ public abstract class AbstractEndpoint<S> {
     }
 
     public abstract static class Acceptor implements Runnable {
+        /**
+         * 连接器状态
+         */
         public enum AcceptorState {
             NEW, RUNNING, PAUSED, ENDED
         }
@@ -164,6 +167,7 @@ public abstract class AbstractEndpoint<S> {
 
 
     /**
+     * 接收器的线程数.
      * Acceptor thread count.
      */
     protected int acceptorThreadCount = 0;
@@ -850,12 +854,22 @@ public abstract class AbstractEndpoint<S> {
         connectionLimitLatch = null;
     }
 
+    /**
+     * 连接计数器加1，或者连接数已达到最大值则等待（阻塞线程）
+     *
+     * @throws InterruptedException
+     */
     protected void countUpOrAwaitConnection() throws InterruptedException {
         if (maxConnections==-1) return;
         LimitLatch latch = connectionLimitLatch;
         if (latch!=null) latch.countUpOrAwait();
     }
 
+    /**
+     * 连接计数器减1
+     *
+     * @return
+     */
     protected long countDownConnection() {
         if (maxConnections==-1) return -1;
         LimitLatch latch = connectionLimitLatch;

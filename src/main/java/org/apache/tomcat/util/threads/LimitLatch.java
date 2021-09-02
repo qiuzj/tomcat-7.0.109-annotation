@@ -41,11 +41,11 @@ public class LimitLatch {
         @Override
         protected int tryAcquireShared(int ignored) {
             long newCount = count.incrementAndGet();
-            if (!released && newCount > limit) {
+            if (!released && newCount > limit) { // 流控
                 // Limit exceeded
                 count.decrementAndGet();
                 return -1;
-            } else {
+            } else { // 获取共享资源成功
                 return 1;
             }
         }
@@ -59,6 +59,7 @@ public class LimitLatch {
 
     private final Sync sync;
     private final AtomicLong count;
+    /** 流控最大值. 在连接中用于控制最大连接数 */
     private volatile long limit;
     private volatile boolean released = false;
 
@@ -106,6 +107,7 @@ public class LimitLatch {
 
 
     /**
+     * 如果有共享锁存器，则获取共享锁存器;如果当前没有共享锁存器，则等待共享锁存器。
      * Acquires a shared latch if one is available or waits for one if no shared
      * latch is current available.
      * @throws InterruptedException If the current thread is interrupted
@@ -118,6 +120,7 @@ public class LimitLatch {
     }
 
     /**
+     * 释放共享锁存，使它可以供其他线程使用。
      * Releases a shared latch, making it available for another thread to use.
      * @return the previous counter value
      */
