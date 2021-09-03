@@ -381,7 +381,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
     @Override
     public void bind() throws Exception {
 
-        // Initialize thread count defaults for acceptor
+        // Initialize thread count defaults for acceptor. 接收器默认线程数为1
         if (acceptorThreadCount == 0) {
             acceptorThreadCount = 1;
         }

@@ -124,12 +124,14 @@ public abstract class AbstractEndpoint<S> {
     protected volatile boolean paused = false;
 
     /**
+     * 默认使用内部线程池，而不是公共的executor
      * Are we using an internal executor
      */
     protected volatile boolean internalExecutor = true;
 
 
     /**
+     * 连接数流控器.
      * counter for nr of connections handled by an endpoint
      */
     private volatile LimitLatch connectionLimitLatch = null;
@@ -187,11 +189,20 @@ public abstract class AbstractEndpoint<S> {
     }
     public int getAcceptorThreadPriority() { return acceptorThreadPriority; }
 
-
+    /**
+     * 服务端可以同时处理的最大连接数.
+     * <p></p>
+     * The maximum number of connections that the server will accept and process at any given time.
+     * When this number has been reached, the server will accept, but not process, one further connection.
+     * This additional connection be blocked until the number of connections being processed falls below maxConnections
+     * at which point the server will start accepting and processing new connections again.
+     * Note that once the limit has been reached, the operating system may still accept connections based on the acceptCount setting.
+     */
     private int maxConnections = 10000;
     public void setMaxConnections(int maxCon) {
         this.maxConnections = maxCon;
         LimitLatch latch = this.connectionLimitLatch;
+        // 更新流控值
         if (latch != null) {
             // Update the latch that enforces this
             if (maxCon == -1) {
@@ -200,6 +211,7 @@ public abstract class AbstractEndpoint<S> {
                 latch.setLimit(maxCon);
             }
         } else if (maxCon > 0) {
+            // 初始化连接流控器
             initializeConnectionLatch();
         }
     }
@@ -230,6 +242,11 @@ public abstract class AbstractEndpoint<S> {
 
     /**
      * External Executor based thread pool.
+     * A reference to the name in an Executor element.
+     * If this attribute is set, and the named executor exists, the connector will use the executor,
+     * and all the other thread attributes will be ignored.
+     * Note that if a shared executor is not specified for a connector then the connector will use a private,
+     * internal executor to provide the thread pool.
      */
     private Executor executor = null;
     public void setExecutor(Executor executor) {
@@ -356,7 +373,10 @@ public abstract class AbstractEndpoint<S> {
 
 
     /**
+     * 内部线程池的最大工作线程数.
      * Maximum amount of worker threads.
+     * The maximum number of request processing threads to be created by this Connector,
+     * which therefore determines the maximum number of simultaneous requests that can be handled.
      */
     private int maxThreads = 200;
     public void setMaxThreads(int maxThreads) {
@@ -382,9 +402,10 @@ public abstract class AbstractEndpoint<S> {
     }
     public int getMaxThreadsWithExecutor() {
         Executor executor = this.executor;
+        // 内部线程池的最大工作线程数
         if (internalExecutor) {
             return maxThreads;
-        } else {
+        } else { // 公共线程
             if (executor instanceof java.util.concurrent.ThreadPoolExecutor) {
                 return ((java.util.concurrent.ThreadPoolExecutor) executor).getMaximumPoolSize();
             } else if (executor instanceof ResizableExecutor) {
@@ -840,6 +861,11 @@ public abstract class AbstractEndpoint<S> {
     public abstract boolean getUseCometTimeout();
     public abstract boolean getUsePolling();
 
+    /**
+     * 初始化连接流控器
+     *
+     * @return
+     */
     protected LimitLatch initializeConnectionLatch() {
         if (maxConnections==-1) return null;
         if (connectionLimitLatch==null) {

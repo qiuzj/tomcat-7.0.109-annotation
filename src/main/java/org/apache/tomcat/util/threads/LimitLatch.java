@@ -40,9 +40,9 @@ public class LimitLatch {
 
         @Override
         protected int tryAcquireShared(int ignored) {
-            long newCount = count.incrementAndGet();
+            long newCount = count.incrementAndGet(); // 先增加计数
             if (!released && newCount > limit) { // 流控
-                // Limit exceeded
+                // Limit exceeded. 触发流控则减少计数
                 count.decrementAndGet();
                 return -1;
             } else { // 获取共享资源成功
@@ -58,6 +58,7 @@ public class LimitLatch {
     }
 
     private final Sync sync;
+    /** 当前数量，最大为limit */
     private final AtomicLong count;
     /** 流控最大值. 在连接中用于控制最大连接数 */
     private volatile long limit;
