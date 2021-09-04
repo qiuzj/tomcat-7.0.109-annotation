@@ -25,6 +25,12 @@ public interface SSLUtil {
 
     public SSLContext createSSLContext() throws Exception;
 
+    /**
+     * 获取密钥管理器列表。应该是可以用来操作密钥库的
+     *
+     * @return
+     * @throws Exception
+     */
     public KeyManager[] getKeyManagers() throws Exception;
 
     public TrustManager[] getTrustManagers() throws Exception;

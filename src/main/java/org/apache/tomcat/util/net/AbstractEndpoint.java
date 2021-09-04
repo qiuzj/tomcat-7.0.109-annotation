@@ -344,6 +344,12 @@ public abstract class AbstractEndpoint<S> {
      * SSL engine.
      */
     private boolean SSLEnabled = false;
+
+    /**
+     * 是否启用SSL
+     *
+     * @return
+     */
     public boolean isSSLEnabled() { return SSLEnabled; }
     public void setSSLEnabled(boolean SSLEnabled) { this.SSLEnabled = SSLEnabled; }
 
@@ -942,14 +948,36 @@ public abstract class AbstractEndpoint<S> {
 
     // --------------------  SSL related properties --------------------
 
+    /**
+     * 证书编码算法。
+     * <p></p>
+     * The certificate encoding algorithm to be used.
+     * This defaults to KeyManagerFactory.getDefaultAlgorithm() which returns SunX509 for Sun JVMs.
+     * IBM JVMs return IbmX509.
+     */
     private String algorithm = KeyManagerFactory.getDefaultAlgorithm();
     public String getAlgorithm() { return algorithm;}
     public void setAlgorithm(String s ) { this.algorithm = s;}
 
+    /**
+     * 是否要求客户端认证，默认为否。
+     * <p></p>
+     * Set to true if you want the SSL stack to require a valid certificate chain from the client before accepting a connection.
+     * Set to want if you want the SSL stack to request a client Certificate, but not fail if one isn't presented.
+     * A false value (which is the default) will not require a certificate chain unless the client requests a resource protected
+     * by a security constraint that uses CLIENT-CERT authentication.
+     */
     private String clientAuth = "false";
     public String getClientAuth() { return clientAuth;}
     public void setClientAuth(String s ) { this.clientAuth = s;}
 
+    /**
+     * 密钥库文件路径。
+     * <p></p>
+     * The pathname of the keystore file where you have stored the server certificate to be loaded.
+     * By default, the pathname is the file ".keystore" in the operating system home directory
+     * of the user that is running Tomcat.
+     */
     private String keystoreFile = System.getProperty("user.home")+"/.keystore";
     public String getKeystoreFile() { return keystoreFile;}
     public void setKeystoreFile(String s ) {
@@ -960,10 +988,21 @@ public abstract class AbstractEndpoint<S> {
     public String getKeystorePass() { return keystorePass;}
     public void setKeystorePass(String s ) { this.keystorePass = s;}
 
+    /**
+     * 密钥库文件类型
+     * <p></p>
+     * The type of keystore file to be used for the server certificate.
+     * If not specified, the default value is "JKS". （PKCS12、Windows-ROOT,、Windows-My、DKS）
+     */
     private String keystoreType = "JKS";
     public String getKeystoreType() { return keystoreType;}
     public void setKeystoreType(String s ) { this.keystoreType = s;}
 
+    /**
+     * The name of the keystore provider to be used for the server certificate.
+     * If not specified, the list of registered providers is traversed in preference order and the first provider
+     * that supports the keystoreType is used.
+     */
     private String keystoreProvider = null;
     public String getKeystoreProvider() { return keystoreProvider;}
     public void setKeystoreProvider(String s ) { this.keystoreProvider = s;}
@@ -982,6 +1021,13 @@ public abstract class AbstractEndpoint<S> {
     public String getUseServerCipherSuitesOrder() { return useServerCipherSuitesOrder;}
     public void setUseServerCipherSuitesOrder(String s) { this.useServerCipherSuitesOrder = s;}
 
+    /**
+     * 用于密钥存储库中的服务器密钥和证书的别名。
+     * <p></p>
+     * The alias used for the server key and certificate in the keystore.
+     * If not specified, the first key read from the keystore will be used.
+     * The order in which keys are read from the keystore is implementation dependent.
+     */
     private String keyAlias = null;
     public String getKeyAlias() { return keyAlias;}
     public void setKeyAlias(String s ) { keyAlias = s;}

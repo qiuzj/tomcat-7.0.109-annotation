@@ -215,7 +215,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                 state = AcceptorState.RUNNING;
 
                 try {
-                    //if we have reached max connections, wait
+                    // if we have reached max connections, wait. 连接计数器加1，或者等待
                     countUpOrAwaitConnection();
 
                     Socket socket = null;
@@ -233,9 +233,10 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                     // Successful accept, reset the error delay
                     errorDelay = 0;
 
-                    // Configure the socket
+                    // Configure the socket. 设置套接字（Socket）的一些属性（bufSize、timeout、tcpNoDely等）;
                     if (running && !paused && setSocketOptions(socket)) {
                         // Hand this socket off to an appropriate processor
+                        // 处理来自新客户机的新连接。包装套接字，以便跟踪keep-alive和其他属性，然后将套接字传递给执行器进行处理
                         if (!processSocket(socket)) {
                             countDownConnection();
                             // Close socket right away
@@ -392,10 +393,10 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
         }
 
         if (serverSocketFactory == null) {
-            if (isSSLEnabled()) {
+            if (isSSLEnabled()) { // SSL
                 serverSocketFactory =
                     handler.getSslImplementation().getServerSocketFactory(this);
-            } else {
+            } else { // 非SLL
                 serverSocketFactory = new DefaultServerSocketFactory(this);
             }
         }
@@ -490,6 +491,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
 
 
     /**
+     * 设置套接字（Socket）的一些属性.
      * Configure the socket.
      */
     protected boolean setSocketOptions(Socket socket) {
@@ -514,6 +516,8 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
 
 
     /**
+     * 处理来自新客户机的新连接。包装套接字，以便跟踪keep-alive和其他属性，然后将套接字传递给执行器进行处理
+     * <p></p>
      * Process a new connection from a new client. Wraps the socket so
      * keep-alive and other attributes can be tracked and then passes the socket
      * to the executor for processing.

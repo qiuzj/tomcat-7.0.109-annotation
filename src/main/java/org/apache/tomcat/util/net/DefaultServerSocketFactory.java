@@ -23,6 +23,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
+ * 默认的服务端套接字工厂类。代码层面没做任务修饰，和直接使用ServerSocket没区别。
+ * <p></p>
  * Default server socket factory. Doesn't do much except give us
  * plain old server sockets.
  *
@@ -40,7 +42,7 @@ public class DefaultServerSocketFactory implements ServerSocketFactory {
 
     @Override
     public ServerSocket createSocket (int port) throws IOException {
-        return  new ServerSocket (port);
+        return new ServerSocket (port);
     }
 
     @Override

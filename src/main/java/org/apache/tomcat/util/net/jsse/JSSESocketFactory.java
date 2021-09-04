@@ -70,6 +70,8 @@ import org.apache.tomcat.util.res.StringManager;
 import org.apache.tomcat.util.security.KeyStoreUtil;
 
 /**
+ * 支持SSL的服务端套接字工厂类。
+ * <p></p>
  * SSL server socket factory. It <b>requires</b> a valid RSA key and
  * JSSE.<br>
  * keytool -genkey -alias tomcat -keyalg RSA<br>
@@ -90,13 +92,17 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
         StringManager.getManager("org.apache.tomcat.util.net.jsse.res");
 
     // Defaults - made public where re-used
+    /** 默认SSL协议为TLS */
     private static final String defaultProtocol = Constants.SSL_PROTO_TLS;
+    /** 默认密钥库文件类型为JKS */
     private static final String defaultKeystoreType = "JKS";
+    /** 默认证书存储位置. 密钥库文件路径 */
     private static final String defaultKeystoreFile
         = System.getProperty("user.home") + "/.keystore";
     private static final int defaultSessionCacheSize = -1;
     private static final int defaultSessionTimeout = 86400;
     private static final String ALLOW_ALL_SUPPORTED_CIPHERS = "ALL";
+    /** 默认证书存储文件密码 */
     public static final String DEFAULT_KEY_PASS = "changeit";
 
     private AbstractEndpoint<?> endpoint;
@@ -355,7 +361,9 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
         return ciphers.toArray(new String[ciphers.size()]);
     }
 
-    /*
+    /**
+     * 获取SSL的服务端密钥库密码。
+     * <p></p>
      * Gets the SSL server's keystore password.
      */
     protected String getKeystorePassword() {
@@ -374,7 +382,7 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
      */
     protected KeyStore getKeystore(String type, String provider, String pass)
             throws IOException {
-
+        // 密钥库文件路径
         String keystoreFile = endpoint.getKeystoreFile();
         if (keystoreFile == null)
             keystoreFile = defaultKeystoreFile;
@@ -452,8 +460,15 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
         return trustStore;
     }
 
-    /*
+    /**
      * Gets the key- or truststore with the specified type, path, and password.
+     *
+     * @param type 密钥库文件类型，如JKS
+     * @param provider 密钥库提供商
+     * @param path 密钥库文件路径
+     * @param pass 密钥库密码
+     * @return
+     * @throws IOException
      */
     private KeyStore getStore(String type, String provider, String path,
             String pass) throws IOException {
@@ -461,6 +476,7 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
         KeyStore ks = null;
         InputStream istream = null;
         try {
+            // 获取/创建指定类型的密钥存储库对象
             if (provider == null) {
                 ks = KeyStore.getInstance(type);
             } else {
@@ -495,6 +511,8 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
                     "JKS".equalsIgnoreCase(type) || "PKCS12".equalsIgnoreCase(type))) {
                 storePass = pass.toCharArray();
             }
+
+            // 从给定的输入流加载到指定的KeyStore
             KeyStoreUtil.load(ks, istream, storePass);
         } catch (FileNotFoundException fnfe) {
             log.error(sm.getString("jsse.keystore_load_failed", type, path,
@@ -527,7 +545,7 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
      */
     void init() throws IOException {
         try {
-
+            /* 默认不要求客户端认证 */
             String clientAuthStr = endpoint.getClientAuth();
             if("true".equalsIgnoreCase(clientAuthStr) ||
                "yes".equalsIgnoreCase(clientAuthStr)) {
@@ -536,7 +554,9 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
                 wantClientAuth = true;
             }
 
+            // 创建SSLContext实例
             SSLContext context = createSSLContext();
+            // 初始化SSLContext
             context.init(getKeyManagers(), getTrustManagers(), null);
 
             // Configure SSL session cache
@@ -574,7 +594,7 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
         if (protocol == null) {
             protocol = defaultProtocol;
         }
-
+        // 创建一个SSL上下文
         SSLContext context = SSLContext.getInstance(protocol);
 
         return context;
@@ -582,11 +602,13 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
 
     @Override
     public KeyManager[] getKeyManagers() throws Exception {
+        // 密钥库文件类型
         String keystoreType = endpoint.getKeystoreType();
         if (keystoreType == null) {
             keystoreType = defaultKeystoreType;
         }
 
+        // 证书编码算法. 如SunX509
         String algorithm = endpoint.getAlgorithm();
         if (algorithm == null) {
             algorithm = KeyManagerFactory.getDefaultAlgorithm();
@@ -642,6 +664,8 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
     }
 
     /**
+     * 密钥管理器是啥子？
+     * <p></p>
      * Gets the initialized key managers.
      */
     protected KeyManager[] getKeyManagers(String keystoreType,
@@ -654,19 +678,22 @@ public class JSSESocketFactory implements ServerSocketFactory, SSLUtil {
 
         String keystorePass = getKeystorePassword();
 
+        // 加载获取密钥库对象
         KeyStore ks = getKeystore(keystoreType, keystoreProvider, keystorePass);
         if (keyAlias != null && !ks.isKeyEntry(keyAlias)) {
             throw new IOException(
                     sm.getString("jsse.alias_no_key_entry", keyAlias));
         }
 
+        // 根据证书编码算法（如SunX509）获取KeyManager工厂实例
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
         String keyPass = endpoint.getKeyPass();
         if (keyPass == null) {
             keyPass = keystorePass;
         }
+        // 初始化密钥管理器工厂
         kmf.init(ks, keyPass.toCharArray());
-
+        // 获取密钥管理器列表
         kms = kmf.getKeyManagers();
         if (keyAlias != null) {
             String alias = keyAlias;

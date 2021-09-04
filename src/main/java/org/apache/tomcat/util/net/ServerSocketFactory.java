@@ -22,12 +22,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
+ * 通用的服务端套接字工厂接口。用于支持创建SSL和非SSL的ServerSocket
+ * <p></p>
  * The common interface through which the {@link JIoEndpoint} interacts with
  * both non-SSL and SSL sockets.
  */
 public interface ServerSocketFactory {
 
     /**
+     * 创建一个服务端Socket，并绑定到指定端口。
+     * <p></p>
      * Returns a server socket which uses all network interfaces on the host,
      * and is bound to a the specified port. The socket is configured with the
      * socket options (such as accept timeout) given to this factory.
@@ -43,6 +47,8 @@ public interface ServerSocketFactory {
             InstantiationException;
 
     /**
+     * 创建一个服务端Socket，并绑定到指定端口，同时设置backlog大小。
+     * <p></p>
      * Returns a server socket which uses all network interfaces on the host, is
      * bound to a the specified port, and uses the specified connection backlog.
      * The socket is configured with the socket options (such as accept timeout)
@@ -61,6 +67,9 @@ public interface ServerSocketFactory {
             InstantiationException;
 
     /**
+     * 创建一个服务端Socket，并绑定到指定端口，同时设置backlog大小。
+     * 另外，该Socket绑定到了指定的网络端口。
+     * <p></p>
      * Returns a server socket which uses only the specified network interface
      * on the local host, is bound to a the specified port, and uses the
      * specified connection backlog. The socket is configured with the socket
@@ -81,6 +90,7 @@ public interface ServerSocketFactory {
             throws IOException, InstantiationException;
 
     /**
+     * 封装Socket的accept()方法，这允许我们在必要时捕获和转换异常。。
      * Wrapper function for accept(). This allows us to trap and translate
      * exceptions if necessary.
      *
@@ -89,6 +99,8 @@ public interface ServerSocketFactory {
     Socket acceptSocket(ServerSocket socket) throws IOException;
 
     /**
+     * SSL握手。非SSL的Socket为空操作
+     * <p></p>
      * Triggers the SSL handshake. This will be a no-op for non-SSL sockets.
      *
      * @exception IOException

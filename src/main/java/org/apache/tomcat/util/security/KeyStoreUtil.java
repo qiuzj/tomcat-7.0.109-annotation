@@ -31,6 +31,8 @@ public class KeyStoreUtil {
     }
 
     /**
+     * 从给定的输入流加载到指定的KeyStore。
+     * <p></p>
      * Loads a KeyStore from an InputStream working around the known JDK bug
      * https://bugs.openjdk.java.net/browse/JDK-8157404.
      *

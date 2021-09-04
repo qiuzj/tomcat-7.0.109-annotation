@@ -60,24 +60,32 @@ public abstract class AbstractInputBuffer<S> implements InputBuffer{
 
 
     /**
+     * 用于缓冲已读取数据的字节流缓冲区.
+     * <p></p>
      * Pointer to the current read buffer.
      */
     protected byte[] buf;
 
 
     /**
+     * 最后一个有效字节，也只可以理解为对buf的写入指针.
+     * 从操作系统底层读取数据填充到buf中最后的位置。
+     * <p></p>
      * Last valid byte.
      */
     protected int lastValid;
 
 
     /**
+     * 对buf的读取指针。
+     * <p></p>
      * Position in the buffer.
      */
     protected int pos;
 
 
     /**
+     * 缓冲区buf中，HTTP协议请求报文头部结束的位置。也表示报文体的开始位置。
      * Pos of the end of the header in the buffer, which is also the
      * start of the body.
      */

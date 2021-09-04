@@ -24,6 +24,8 @@ import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 
 /**
+ * 连接控制器.
+ * <p></p>
  * Shared latch that allows the latch to be acquired a limited number of times
  * after which all subsequent requests to acquire the latch will be placed in a
  * FIFO queue until one of the shares is returned.
@@ -57,11 +59,13 @@ public class LimitLatch {
         }
     }
 
+    /** 用于实现连接流量控制的同步器 */
     private final Sync sync;
     /** 当前数量，最大为limit */
     private final AtomicLong count;
     /** 流控最大值. 在连接中用于控制最大连接数 */
     private volatile long limit;
+    /** Is Releases all waiting threads and causes the limit to be ignored？（until reset() is called.） */
     private volatile boolean released = false;
 
     /**
@@ -108,7 +112,8 @@ public class LimitLatch {
 
 
     /**
-     * 如果有共享锁存器，则获取共享锁存器;如果当前没有共享锁存器，则等待共享锁存器。
+     * 如果有共享锁存器，则获取共享锁存器;
+     * 如果当前没有共享锁存器，则等待共享锁存器。当计数超过最大限制值时则阻塞线程。
      * Acquires a shared latch if one is available or waits for one if no shared
      * latch is current available.
      * @throws InterruptedException If the current thread is interrupted
