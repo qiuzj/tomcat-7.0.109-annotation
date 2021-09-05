@@ -42,13 +42,15 @@ public abstract class AbstractInputBuffer<S> implements InputBuffer{
 
 
     /**
+     * 一个请求对应的整个请求头（包含多个请求头字段）。
+     * <p></p>
      * Headers of the associated request.
      */
     protected MimeHeaders headers;
 
 
     /**
-     * State.
+     * State. 是否正在解析请求头
      */
     protected boolean parsingHeader;
 
@@ -68,8 +70,9 @@ public abstract class AbstractInputBuffer<S> implements InputBuffer{
 
 
     /**
-     * 最后一个有效字节，也只可以理解为对buf的写入指针.
+     * 最后一个有效字节，也可以理解为对buf的写入指针.
      * 从操作系统底层读取数据填充到buf中最后的位置。
+     * 这个表示的应该是最后一个有效字节的下一个位置，即lastValid-1才是最后的一个有效字节。
      * <p></p>
      * Last valid byte.
      */
@@ -216,6 +219,13 @@ public abstract class AbstractInputBuffer<S> implements InputBuffer{
 
     public abstract boolean parseHeaders() throws IOException;
 
+    /**
+     * 从输入流读取数据填充到缓冲区。
+     *
+     * @param block 如果读取不到数据，是否阻塞等待
+     * @return 是否读取到数据。true:是，false:否
+     * @throws IOException
+     */
     protected abstract boolean fill(boolean block) throws IOException;
 
     protected abstract void init(SocketWrapper<S> socketWrapper,

@@ -308,6 +308,8 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
 
     /**
+     * 解析HTTP请求头。
+     * <p></p>
      * Parse the HTTP headers.
      */
     @Override
@@ -318,6 +320,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
                     sm.getString("iib.parseheaders.ise.error"));
         }
 
+        // 循环解析出请求头的每一个字段
         while (parseHeader()) {
             // Loop until we run out of headers
         }
@@ -329,6 +332,8 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
 
     /**
+     * 解析一行HTTP请求头。
+     * <p></p>
      * Parse an HTTP header.
      *
      * @return false after reading a blank line (which indicates that the
@@ -336,7 +341,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
      */
     @SuppressWarnings("null") // headerValue cannot be null
     private boolean parseHeader() throws IOException {
-
+        // 忽略掉无效的回车（CR）？
         while (true) {
 
             // Read new bytes if needed
@@ -348,13 +353,13 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
             prevChr = chr;
             chr = buf[pos];
 
-            if (chr == Constants.CR && prevChr != Constants.CR) {
-                // Possible start of CRLF - process the next byte.
-            } else if (prevChr == Constants.CR && chr == Constants.LF) {
+            if (chr == Constants.CR && prevChr != Constants.CR) { // 非回车+回车
+                // Possible start of CRLF - process the next byte. 可能是CRLF，处理下一个字节看看
+            } else if (prevChr == Constants.CR && chr == Constants.LF) { // 回车+换行，表示遇到请求头结束标志
                 pos++;
                 return false;
-            } else {
-                if (prevChr == Constants.CR) {
+            } else { // 非CRLF
+                if (prevChr == Constants.CR) { // 回车+非换行
                     // Must have read two bytes (first was CR, second was not LF)
                     pos--;
                 }
@@ -365,7 +370,9 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
         }
 
         // Mark the current buffer position
+        // 当前处理逻辑的起始位置
         int start = pos;
+        // 当前行的起始位置
         int lineStart = start;
 
         //
@@ -373,9 +380,12 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
         // Header name is always US-ASCII
         //
 
+        // 是否遇到了冒号:
         boolean colon = false;
+        // 请求头字段的值对象
         MessageBytes headerValue = null;
 
+        // 解析请求头字段名
         while (!colon) {
 
             // Read new bytes if needed
@@ -386,6 +396,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
             if (buf[pos] == Constants.COLON) {
                 colon = true;
+                // 创建请求头对象，保存请求头字段的名称，最后返回请求头字段的值对象
                 headerValue = headers.addValue(buf, start, pos - start);
             } else if (!HttpParser.isToken(buf[pos])) {
                 // Non-token characters are illegal in header names
@@ -412,6 +423,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
         // Reading the header value (which can be spanned over multiple lines)
         //
 
+        // 是否读到了行末
         boolean eol = false;
         boolean validLine = true;
 
@@ -419,7 +431,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
             boolean space = true;
 
-            // Skipping spaces
+            // Skipping spaces. 忽略空格
             while (space) {
 
                 // Read new bytes if needed
@@ -438,6 +450,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
             int lastSignificantChar = realPos;
 
+            // 从当前位置读到行末
             // Reading bytes until the end of the line
             while (!eol) {
 
@@ -453,13 +466,13 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
                     // Possible start of CRLF - process the next byte.
                 } else if (prevChr == Constants.CR && chr == Constants.LF) {
                     eol = true;
-                } else if (prevChr == Constants.CR) {
+                } else if (prevChr == Constants.CR) { // 无效的请求头值，删除该请求头字段
                     // Invalid value
                     // Delete the header (it will be the most recent one)
                     headers.removeHeader(headers.size() - 1);
                     skipLine(lineStart, start);
                     return true;
-                } else if (chr != Constants.HT && HttpParser.isControl(chr)) {
+                } else if (chr != Constants.HT && HttpParser.isControl(chr)) { // 无效的请求头值，删除该请求头字段
                     // Invalid value
                     // Delete the header (it will be the most recent one)
                     headers.removeHeader(headers.size() - 1);
@@ -502,7 +515,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
         }
 
-        // Set the header value
+        // Set the header value. 保存请求头字段的值
         headerValue.setBytes(buf, start, realPos - start);
 
         return true;
@@ -586,14 +599,14 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
                 throw new IllegalArgumentException
                     (sm.getString("iib.requestheadertoolarge.error"));
             }
-
+            // 从输入流的pos位置开始，读取最多buf.length - lastValid个字节到buf缓冲区
             nRead = inputStream.read(buf, pos, buf.length - lastValid);
             if (nRead > 0) {
                 lastValid = pos + nRead;
             }
 
         } else {
-
+            // 由于请求头比较大，剩下的缓冲区比较小，因此重置缓冲区
             if (buf.length - end < 4500) {
                 // In this case, the request header was really large, so we allocate a
                 // brand new one; the old one will get GCed when subsequent requests

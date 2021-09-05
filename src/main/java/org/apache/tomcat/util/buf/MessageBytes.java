@@ -118,7 +118,7 @@ public final class MessageBytes implements Cloneable, Serializable {
 
 
     /**
-     * 将内容设置为指定的字节子数组。
+     * 将字节数组的内容设置到指定的字节子数组中，即将[b[off], b[off + len])区间的数据保存到byteC中。
      * <p></p>
      * Sets the content to the specified subarray of bytes.
      *

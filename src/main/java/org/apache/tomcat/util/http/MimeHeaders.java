@@ -97,17 +97,23 @@ public class MimeHeaders {
             StringManager.getManager("org.apache.tomcat.util.http");
 
     /**
+     * 请求头字段数组。
+     * <p></p>
      * The header fields.
      */
     private MimeHeaderField[] headers = new
         MimeHeaderField[DEFAULT_HEADER_SIZE];
 
     /**
+     * 当前请求头字段数量。
+     * <p></p>
      * The current number of header fields.
      */
     private int count;
 
     /**
+     * 请求头字段的最大数量限制。
+     * <p></p>
      * The limit on the number of header fields.
      */
     private int limit = -1;
@@ -241,6 +247,8 @@ public class MimeHeaders {
 
 
     /**
+     * 创建一个空的请求头字段对象，字段名和字段值未初始化。
+     * <p></p>
      * Adds a partially constructed field to the header.  This
      * field has not had its name or value initialized.
      */
@@ -249,11 +257,12 @@ public class MimeHeaders {
             throw new IllegalStateException(sm.getString(
                     "headers.maxCountFail", Integer.valueOf(limit)));
         }
+
         MimeHeaderField mh;
         int len = headers.length;
-        if (count >= len) {
+        if (count >= len) { // 请求头字段数组2倍扩容
             // expand header list array
-            int newLength = count * 2;
+            int newLength = count * 2; // 2倍
             if (limit > 0 && newLength > limit) {
                 newLength = limit;
             }
@@ -261,10 +270,12 @@ public class MimeHeaders {
             System.arraycopy(headers, 0, tmp, 0, len);
             headers = tmp;
         }
-        if ((mh = headers[count]) == null) {
-            headers[count] = mh = new MimeHeaderField();
+
+        if ((mh = headers[count]) == null) { // 还有可能不为空？
+            headers[count] = mh = new MimeHeaderField(); // 创建一个新的请求头字段对象
         }
-        count++;
+        count++; // 请求头字段数量加1
+
         return mh;
     }
 
@@ -290,9 +301,9 @@ public class MimeHeaders {
      * @return the message bytes container for the value
      */
     public MessageBytes addValue(byte b[], int startN, int len) {
-        MimeHeaderField mhf=createHeader();
-        mhf.getName().setBytes(b, startN, len);
-        return mhf.getValue();
+        MimeHeaderField mhf = createHeader(); // 创建一个新的请求头字段
+        mhf.getName().setBytes(b, startN, len); // 保证请求头字段的名称
+        return mhf.getValue(); // 返回请求头字段值对象
     }
 
     /** Create a new named header using translated char[].
@@ -501,9 +512,13 @@ class ValuesEnumerator implements Enumeration<String> {
     }
 }
 
+/**
+ * 代表一个请求头
+ */
 class MimeHeaderField {
-
+    /** 字段名 */
     private final MessageBytes nameB = MessageBytes.newInstance();
+    /** 字段值 */
     private final MessageBytes valueB = MessageBytes.newInstance();
 
     /**
